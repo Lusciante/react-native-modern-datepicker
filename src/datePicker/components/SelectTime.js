@@ -14,7 +14,7 @@ import {useCalendar} from '../DatePicker';
 
 const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
-const TimeScroller = ({title, data, onChange}) => {
+const TimeScroller = ({title, data, onChange, initial}) => {
   const {options, utils} = useCalendar();
   const [itemSize, setItemSize] = useState(0);
   const style = styles(options);
@@ -22,6 +22,14 @@ const TimeScroller = ({title, data, onChange}) => {
   const scrollListener = useRef(null);
   const active = useRef(0);
   data = ['', '', ...data, '', ''];
+
+  const listRef = useRef(null);
+
+  useEffect(() => {
+    if (initial) {
+      listRef.current.scrollToIndex({index: initial, animated: false});
+    }
+  }, [initial, data]);
 
   useEffect(() => {
     scrollListener.current && clearInterval(scrollListener.current);
@@ -84,11 +92,17 @@ const TimeScroller = ({title, data, onChange}) => {
     <View style={style.row} onLayout={changeItemWidth}>
       <Text style={style.title}>{title}</Text>
       <AnimatedFlatList
+        ref={listRef}
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         horizontal
         snapToInterval={itemSize}
         decelerationRate={'fast'}
+        getItemLayout={(data, index) => ({
+          length: itemSize,
+          offset: itemSize * index,
+          index,
+        })}
         onScroll={Animated.event([{nativeEvent: {contentOffset: {x: scrollAnimatedValue}}}], {
           useNativeDriver: true,
         })}
@@ -129,7 +143,7 @@ const SelectTime = () => {
     show &&
       setTime({
         minute: 0,
-        hour: 0,
+        hour: 12,
       });
   }, [show]);
 
@@ -188,6 +202,7 @@ const SelectTime = () => {
         title={utils.config.hour}
         data={Array.from({length: 24}, (x, i) => i)}
         onChange={hour => setTime({...time, hour})}
+        initial={time.hour}
       />
       <TimeScroller
         title={utils.config.minute}
