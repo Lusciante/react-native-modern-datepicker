@@ -4,15 +4,12 @@ import {
   StyleSheet,
   Text,
   Animated,
-  FlatList,
   Easing,
   TouchableOpacity,
   I18nManager,
 } from 'react-native';
 
 import {useCalendar} from '../DatePicker';
-
-const AnimatedFlatList = Animated.createAnimatedComponent(FlatList);
 
 const TimeScroller = ({title, data, onChange, initial}) => {
   const {options, utils} = useCalendar();
@@ -24,12 +21,6 @@ const TimeScroller = ({title, data, onChange, initial}) => {
   data = ['', '', ...data, '', ''];
 
   const listRef = useRef(null);
-
-  useEffect(() => {
-    if (initial) {
-      listRef.current.scrollToIndex({index: initial, animated: false});
-    }
-  }, [initial, data]);
 
   useEffect(() => {
     scrollListener.current && clearInterval(scrollListener.current);
@@ -91,7 +82,7 @@ const TimeScroller = ({title, data, onChange, initial}) => {
   return (
     <View style={style.row} onLayout={changeItemWidth}>
       <Text style={style.title}>{title}</Text>
-      <AnimatedFlatList
+      <Animated.FlatList
         ref={listRef}
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -114,6 +105,7 @@ const TimeScroller = ({title, data, onChange, initial}) => {
         keyExtractor={(_, i) => String(i)}
         renderItem={renderItem}
         inverted={I18nManager.isRTL}
+        initialScrollIndex={initial}
         contentContainerStyle={
           I18nManager.isRTL && {
             transform: [
@@ -140,6 +132,7 @@ const SelectTime = () => {
   const openAnimation = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    console.log('SHOW?', show);
     show &&
       setTime({
         minute: 0,
@@ -202,7 +195,7 @@ const SelectTime = () => {
         title={utils.config.hour}
         data={Array.from({length: 24}, (x, i) => i)}
         onChange={hour => setTime({...time, hour})}
-        initial={time.hour}
+        initial={12}
       />
       <TimeScroller
         title={utils.config.minute}
